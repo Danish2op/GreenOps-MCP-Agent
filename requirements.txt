@@ -1,0 +1,4 @@
+fastmcp>=2.0
+google-cloud-bigquery>=3.0
+google-adk>=1.0
+python-dotenv>=1.0
