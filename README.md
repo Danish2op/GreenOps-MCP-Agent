@@ -38,23 +38,23 @@ GreenOps utilizes a token-efficient architecture using FastMCP to bridge ADK to 
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Agent Orchestrator (Cloud Run)
-    participant FastMCP Server (Cloud Run)
-    participant External Masters (BQ, Weather, FX)
+    participant User as User
+    participant Agent as Agent Orchestrator (Cloud Run)
+    participant FastMCP as FastMCP Server (Cloud Run)
+    participant External as External Masters (BQ, Weather, FX)
 
-    User->>Agent Orchestrator (Cloud Run): Submits Workload (e.g., $45 Batch Job)
-    activate Agent Orchestrator (Cloud Run)
-    Agent Orchestrator (Cloud Run)->>FastMCP Server (Cloud Run): Calls Specialized Tools
-    activate FastMCP Server (Cloud Run)
-    FastMCP Server (Cloud Run)->>External Masters (BQ, Weather, FX): Evaluates Carbon, Forecasts, and Cost
-    activate External Masters (BQ, Weather, FX)
-    External Masters (BQ, Weather, FX)-->>FastMCP Server (Cloud Run): Ranked Carbon Metrics / Forecasts / AUD
-    deactivate External Masters (BQ, Weather, FX)
-    FastMCP Server (Cloud Run)-->>Agent Orchestrator (Cloud Run): Filtered JSON Payload
-    deactivate FastMCP Server (Cloud Run)
-    Agent Orchestrator (Cloud Run)-->>User: Streams Cleanest Spatial & Temporal Recommendation
-    deactivate Agent Orchestrator (Cloud Run)
+    User->>Agent: Submits Workload (e.g., $45 Batch Job)
+    activate Agent
+    Agent->>FastMCP: Calls Specialized Tools
+    activate FastMCP
+    FastMCP->>External: Evaluates Carbon, Forecasts, and Cost
+    activate External
+    External-->>FastMCP: Ranked Carbon Metrics / Forecasts / AUD
+    deactivate External
+    FastMCP-->>Agent: Filtered JSON Payload
+    deactivate FastMCP
+    Agent-->>User: Streams Cleanest Spatial & Temporal Recommendation
+    deactivate Agent
 ```
 
 ### Component Breakdown
