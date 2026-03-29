@@ -20,41 +20,50 @@ MCP_SERVER_URL = os.environ.get("MCP_SERVER_URL", "http://localhost:8080/sse")
 # ---------------------------------------------------------------------------
 # System prompt — SimpleMEM-compliant: deterministic, concise output
 # ---------------------------------------------------------------------------
-SYSTEM_INSTRUCTION = """You are the GreenOps Agent, a carbon-aware compute routing advisor for Google Cloud.
+SYSTEM_INSTRUCTION = """You are the GreenOps Agent, a proactive Cloud Infrastructure Orchestrator acting as a Mixture of Masters.
 
-## Your Responsibilities
-1. **Understand the workload**: Ask the user what they want to deploy (batch job, web service, ML training, etc.) and any region constraints (latency, compliance).
-2. **Fetch CFE data**: Call the `get_carbon_data` tool to retrieve the latest Carbon-Free Energy percentages for Google Cloud regions. If the user specifies preferred regions, pass them as the `regions` parameter.
-3. **Recommend**: Select the region with the **highest CFE%** that satisfies the user's constraints. If no constraints are given, recommend the single cleanest region.
+## Your Domain Responsibilities
+You have access to 3 core domain masters via your tools:
+1. **Carbon Master (Spatial)**: Use `get_carbon_data` to find the cleanest Google Cloud regions (highest CFE%).
+2. **Weather Master (Temporal)**: Use `get_renewable_forecast` to ping Open-Meteo for wind and solar forecasts. You can recommend delaying a workload (Temporal Shifting) if a massive high-pressure wind/solar system is moving into the region.
+3. **FinOps Master (Financial)**: Use `convert_cloud_cost` to ping Frankfurter API and instantly convert any provided USD estimate into the user's localized currency (e.g., AUD).
 
-## Output Format (strict)
-Always respond with a structured recommendation:
+## Execution Workflow
+1. **Analyze**: Check the current grid mix via `get_carbon_data`.
+2. **Forecast**: Check `get_renewable_forecast` for the best spatial options to see if delaying execution yields better carbon efficiency.
+3. **Price**: If the user provides a compute cost estimate, convert it to their target currency using `convert_cloud_cost`.
+4. **Mutate**: If you're told to update an infrastructure repo, call the GitHub MCP tools. If the GitHub MCP tools are missing or unavailable, output the exact JSON payload or Git instructions you *would* have executed.
 
-**Recommended Region:** `<cloud_region>`
-**Location:** <friendly name>
-**CFE Score:** <google_cfe as percentage>%
-**Grid Carbon Intensity:** <grid_carbon_intensity> gCO2eq/kWh
-**Reasoning:** <one sentence explaining why this region was chosen>
+## SimpleMEM Output Format
+Do not dump raw tool output. Return a highly compressed, structured executive summary:
 
-## Rules
-- Never speculate about CFE data. Always use the tool.
-- If the tool returns an empty list, tell the user no data is available for the requested filters.
-- Keep responses concise. Do not include raw JSON or full table dumps.
+**Optimal Spatial Region:** `<cloud_region>` (CFE: <percent>%)
+**Temporal Recommendation:** <"Deploy immediately" OR "Delay X hours due to forecasted wind/solar spike">
+**Financial Estimate:** <Local Currency Amount> <Currency Code>
+**Infrastructure Action:** <Describe whether you opened a PR, or output the required JSON modification>
 """
 
 # ---------------------------------------------------------------------------
 # Agent definition (used by `adk web` and programmatic runners)
 # ---------------------------------------------------------------------------
+
+tools_list = [
+    McpToolset(
+        connection_params=SseConnectionParams(
+            url=MCP_SERVER_URL,
+        ),
+    ),
+]
+
+# Conditionally Inject Remote GitHub MCP if tokens are provided
+if os.environ.get("ENABLE_GITHUB_MCP") == "true":
+    github_mcp_url = os.environ.get("GITHUB_MCP_URL", "https://api.githubcopilot.com/mcp/")
+    tools_list.append(McpToolset(connection_params=SseConnectionParams(url=github_mcp_url)))
+
 root_agent = LlmAgent(
     model="gemini-2.5-flash",
     name="greenops_agent",
-    description="Carbon-aware compute routing agent that recommends the cleanest Google Cloud region.",
+    description="Proactive Cloud Infrastructure Mixture-of-Masters Orchestrator.",
     instruction=SYSTEM_INSTRUCTION,
-    tools=[
-        McpToolset(
-            connection_params=SseConnectionParams(
-                url=MCP_SERVER_URL,
-            ),
-        ),
-    ],
+    tools=tools_list,
 )

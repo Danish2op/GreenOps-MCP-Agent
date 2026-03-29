@@ -11,7 +11,7 @@
 
 **A Winner-Ready Serverless Solution for the Google Cloud Gen AI Academy APAC — Track 2.**
 
-GreenOps is an autonomous, 100% serverless, zero-cost AI agent built with **Google Agent Development Kit (ADK)** and the **Model Context Protocol (MCP)**. It dynamically routes compute workloads to the cleanest Google Cloud regions by evaluating real-time **Carbon-Free Energy (CFE%)** and **Grid Carbon Intensity** metrics. 
+GreenOps is an autonomous, 100% serverless, zero-cost AI agent built with **Google Agent Development Kit (ADK)** and the **Model Context Protocol (MCP)**. Evolving into a proactive **Mixture of Masters**, it does more than just route compute workloads to the cleanest Google Cloud regions—it actively orchestrates Temporal, Financial, and Spatial domains to optimize your infrastructure.
 
 ---
 
@@ -22,45 +22,45 @@ GreenOps is an autonomous, 100% serverless, zero-cost AI agent built with **Goog
 
 ---
 
-## ✨ Key Features & Innovations
+## ✨ Key Features & The Mixture of Masters
 
-1. **Deterministic Data-Driven Routing:** Queries the official `bigquery-public-data.google_cfe.datacenter_cfe` dataset to recommend the optimal deployment region (e.g., `europe-north2` operating at 100% CFE).
-2. **Zero Financial Cost:** Architected strictly for "Always Free" tiers. Everything operates inside Google Cloud Run and BigQuery's free tiers, making it globally accessible at zero marginal cost.
-3. **Advanced LLM Patterns:**
-   - **SimpleMEM Framework**: Semantic structured compression converts raw data into context-independent units, eliminating bloated context windows.
-   - **Recursive Language Models (RLM)**: All heavy SQL execution, schema probing, and data aggregations are done *server-side*, shipping only compact, ranked constraints to the LLM.
+1. **Spatial Master (Carbon Routing):** Queries the official `bigquery-public-data.google_cfe.datacenter_cfe` dataset to recommend the optimal deployment region (e.g., `europe-north2` operating at 100% CFE).
+2. **Temporal Master (Weather Forecasting):** Integrates the free [Open-Meteo](https://open-meteo.com/en/docs) API to predict upcoming spikes in wind and solar energy, allowing the agent to recommend delaying workloads for maximum carbon efficiency.
+3. **FinOps Master (Cost Localization):** Uses the [Frankfurter](https://www.frankfurter.app/docs/) FX API to instantly convert USD cloud cost estimates into your local currency.
+4. **Autonomous Testing Master (QA):** Features a dedicated Python testing pipeline (`tests/testing_master.py`) utilizing `pytest` and an isolated `LlmAgent` to routinely smoke-test the orchestrator and flag hallucinations.
+5. **Zero Financial Cost:** Architected strictly for "Always Free" tiers. Everything operates inside Google Cloud Run and BigQuery's free tiers, making it globally accessible at zero marginal cost.
 
 ---
 
 ## 🛠️ Architecture
 
-GreenOps utilizes a highly constrained, token-efficient architecture using FastMCP to bridge ADK and BigQuery:
+GreenOps utilizes a token-efficient architecture using FastMCP to bridge ADK to the domain Masters:
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant Agent App (Cloud Run)
+    participant Agent Orchestrator (Cloud Run)
     participant FastMCP Server (Cloud Run)
-    participant BigQuery Engine
+    participant External Masters (BQ, Weather, FX)
 
-    User->>Agent App (Cloud Run): Submits Workload Constraints (e.g., EU Region, Batch Job)
-    activate Agent App (Cloud Run)
-    Agent App (Cloud Run)->>FastMCP Server (Cloud Run): Calls `get_carbon_data` via SSE
+    User->>Agent Orchestrator (Cloud Run): Submits Workload (e.g., $45 Batch Job)
+    activate Agent Orchestrator (Cloud Run)
+    Agent Orchestrator (Cloud Run)->>FastMCP Server (Cloud Run): Calls Specialized Tools
     activate FastMCP Server (Cloud Run)
-    FastMCP Server (Cloud Run)->>BigQuery Engine: Executes Optimized Server-Side SQL
-    activate BigQuery Engine
-    BigQuery Engine-->>FastMCP Server (Cloud Run): Ranked Carbon Metrics (CFE%)
-    deactivate BigQuery Engine
-    FastMCP Server (Cloud Run)-->>Agent App (Cloud Run): Filtered JSON Payload
+    FastMCP Server (Cloud Run)->>External Masters (BQ, Weather, FX): Evaluates Carbon, Forecasts, and Cost
+    activate External Masters (BQ, Weather, FX)
+    External Masters (BQ, Weather, FX)-->>FastMCP Server (Cloud Run): Ranked Carbon Metrics / Forecasts / AUD
+    deactivate External Masters (BQ, Weather, FX)
+    FastMCP Server (Cloud Run)-->>Agent Orchestrator (Cloud Run): Filtered JSON Payload
     deactivate FastMCP Server (Cloud Run)
-    Agent App (Cloud Run)-->>User: Streams Cleanest Region Recommendation
-    deactivate Agent App (Cloud Run)
+    Agent Orchestrator (Cloud Run)-->>User: Streams Cleanest Spatial & Temporal Recommendation
+    deactivate Agent Orchestrator (Cloud Run)
 ```
 
 ### Component Breakdown
-- **ADK Agent Service (`agents/greenops_agent/`)**: Powered by Google Gemini 2.5 Flash, functioning as the reasoning engine for the user dialogue. Served via a custom FastAPI `agent_app.py` wrapper.
-- **FastMCP Server (`mcp_server/main.py`)**: The data connector conforming to the Model Context Protocol. Exposes exactly one semantic tool (`get_carbon_data`).
-- **BigQuery Client (`mcp_server/bq_client.py`)**: Executes deterministic SQL to prevent LLM hallucinations about real-world carbon datasets.
+- **ADK Agent Service (`greenops_agent/agent.py`)**: Powered by Google Gemini 2.5 Flash, functioning as the Orchestrator for the user dialogue. Served securely via a custom FastAPI wrapper.
+- **FastMCP Server (`mcp_server/main.py`)**: The data connector conforming to the Model Context Protocol. Exposes semantic tools mapping to the BigQuery, Open-Meteo, and Frankfurter APIs.
+- **Testing Master (`tests/testing_master.py`)**: A programmatic evaluation framework that validates the Orchestrator's SimpleMEM formatting and constraint adherence.
 
 ---
 
@@ -90,7 +90,7 @@ You must launch both the MCP Server and the Agent App:
 # Terminal 1: Start the MCP Server
 python -m mcp_server.main
 
-# Terminal 2: Start the ADK Web UI
+# Terminal 2: Start the Hardened ADK Web UI
 python agent_app.py
 ```
 
@@ -112,21 +112,19 @@ gcloud run deploy greenops-mcp \
 ### Deploy the ADK Agent Application
 ```bash
 # IMPORTANT: Move Dockerfiles temporarily to ensure correct target builds
-mv Dockerfile.mcp Dockerfile.mcp_tmp
 mv Dockerfile.agent Dockerfile
 gcloud run deploy greenops-agent-app \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
   --project greenops-agent
-mv Dockerfile Dockerfile.agent
-mv Dockerfile.mcp_tmp Dockerfile.mcp
+git restore Dockerfile
 ```
 
 ---
 
 ## 📊 Verification Metrics
-The agent strictly uses verified BigQuery data and successfully identifies regional metrics such as:
+The agent safely uses verified API data and successfully identifies metrics such as:
 - **Cleanest Global Region**: `europe-north2` (Finland) consistently operating at **100% CFE**.
 - **Cleanest US Region**: `us-south1` (Dallas) operating at **94% CFE**.
 
